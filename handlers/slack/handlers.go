@@ -28,7 +28,12 @@ func connectWs(url string, origin string) (*websocket.Conn, error) {
 }
 
 func currentIpMessage(prefix string) data.WsMessage {
-	ipResp, _ := http.Get("https://api.ipify.org?format=json")
+	ipResp, err := http.Get("https://api.ipify.org?format=json")
+	if err != nil {
+		fmt.Println("Error", err)
+		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err)}
+	}
+	defer ipResp.Body.Close()
 	var ipInfo data.IpInfo
 	json.NewDecoder(ipResp.Body).Decode(&ipInfo)
 	if len(prefix) > 0 {

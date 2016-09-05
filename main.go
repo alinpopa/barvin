@@ -7,7 +7,7 @@ import (
 )
 
 func main() {
-	userId := flag.String("userid", "", "The privileged slack userid.")
+	userID := flag.String("userid", "", "The privileged slack userid.")
 	token := flag.String("token", "", "Slack token to connect.")
 	flag.Parse()
 
@@ -21,7 +21,7 @@ func main() {
 		}()
 		for {
 			msg := <-restartChannel
-			go slack.SlackHandler(msg, restartChannel, *userId, *token)
+			go slack.SlackHandler(msg, restartChannel, *userID, *token)
 		}
 	}()
 	wg.Wait()
