@@ -56,6 +56,9 @@ func sendPrvMessage(to string, msg string, token string) error {
 	rsp, err := http.PostForm("https://slack.com/api/chat.postMessage?token="+token, url.Values{"channel": {to}, "as_user": {"true"}, "text": {msg}})
 	fmt.Println("Got resp:", rsp)
 	fmt.Println("Got err:", err)
+	if rsp != nil {
+		rsp.Body.Close()
+	}
 	return err
 }
 
@@ -78,7 +81,8 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 	fmt.Println(rtm.Url)
 	ws, err := connectWs(rtm.Url, origin)
 	for err != nil {
-		time.Sleep(3 * time.Second)
+		fmt.Println(">>> Got error; trying to reconnect to WS", err)
+		time.Sleep(35 * time.Second)
 		rtm := startRtm(origin)
 		ws, err = connectWs(rtm.Url, origin)
 	}

@@ -23,7 +23,7 @@ type IpInfo struct {
 }
 
 type RtmResponse struct {
-	Url string
+	Url string `json:"url"`
 }
 
 type WsMessage struct {
