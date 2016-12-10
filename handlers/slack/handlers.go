@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/alinpopa/barvin/data"
+	"github.com/op/go-logging"
 	"golang.org/x/net/websocket"
 	"net/http"
 	"net/url"
 	"strings"
 	"time"
 )
+
+var log = logging.MustGetLogger("main-logger")
 
 func startRtm(origin string) data.RtmResponse {
 	resp, err := http.Get(origin)
@@ -29,7 +32,7 @@ func connectWs(url string, origin string) (*websocket.Conn, error) {
 func currentIpMessage(prefix string) data.WsMessage {
 	ipResp, err := http.Get("https://api.ipify.org?format=json")
 	if err != nil {
-		fmt.Println("Error", err)
+		log.Errorf("Error while fetching the IP: %s", err)
 		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err)}
 	}
 	defer ipResp.Body.Close()
@@ -53,8 +56,9 @@ func replyMessage(ws *websocket.Conn, event data.WsEvent, msg string) error {
 
 func sendPrvMessage(to string, msg string, token string) error {
 	rsp, err := http.PostForm("https://slack.com/api/chat.postMessage?token="+token, url.Values{"channel": {to}, "as_user": {"true"}, "text": {msg}})
-	fmt.Println("Got resp:", rsp)
-	fmt.Println("Got err:", err)
+	if err != nil {
+		log.Errorf("Error while sending private message: %s", err)
+	}
 	if rsp != nil {
 		rsp.Body.Close()
 	}
@@ -68,7 +72,7 @@ func restart(msg string, err error, c chan<- string) {
 	} else {
 		m = msg
 	}
-	fmt.Println(m)
+	log.Noticef("Restart: %s", m)
 	go func() {
 		c <- m
 	}()
@@ -77,10 +81,10 @@ func restart(msg string, err error, c chan<- string) {
 func SlackHandler(initMessage string, restartChannel chan<- string, userId string, token string) {
 	origin := "https://slack.com/api/rtm.start?token=" + token
 	rtm := startRtm(origin)
-	fmt.Println(rtm.Url)
+	log.Debugf("RTM url: %s", rtm.Url)
 	ws, err := connectWs(rtm.Url, origin)
 	for err != nil {
-		fmt.Println(">>> Got error; trying to reconnect to WS", err)
+		log.Infof("Got error; trying to reconnect to WS: %s", err)
 		time.Sleep(35 * time.Second)
 		rtm := startRtm(origin)
 		ws, err = connectWs(rtm.Url, origin)
@@ -96,12 +100,12 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 		}
 		unmarshallErr := json.Unmarshal([]byte(msg), &event)
 		if unmarshallErr != nil {
-			fmt.Println("Error while unmarshaling message:", msg)
+			log.Errorf("Error while unmarshaling message: %s", msg)
 			restart("Error unmarshalling message", unmarshallErr, restartChannel)
 			break
 		}
-		fmt.Println("Raw message:", msg)
-		fmt.Printf("Got event %+v\n", event)
+		log.Debugf("Raw message: %s", msg)
+		log.Infof("Got event %+v", event)
 		if strings.ToLower(event.Text) == "ip" && event.User == userId {
 			replyMessage(ws, event, currentIpMessage("").Msg)
 		}
