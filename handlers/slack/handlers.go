@@ -106,6 +106,5 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 		if strings.ToLower(event.Text) == "ip" && event.User == userId {
 			replyMessage(ws, event, currentIpMessage("").Msg)
 		}
-		runtime.Gosched()
 	}
 }
