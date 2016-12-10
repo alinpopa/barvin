@@ -7,7 +7,6 @@ import (
 	"golang.org/x/net/websocket"
 	"net/http"
 	"net/url"
-	"runtime"
 	"strings"
 	"time"
 )
