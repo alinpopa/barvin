@@ -44,6 +44,23 @@ func currentIpMessage(prefix string) data.WsMessage {
 	return data.WsMessage{Msg: ipInfo.Ip}
 }
 
+func getHomeWeather() data.WsMessage {
+	weatherResp, err := http.Get("https://agent.electricimp.com/ABsCu4F5e-PU/json")
+	if err != nil {
+		log.Errorf("Error while fetching the weather: %s", err)
+		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err)}
+	}
+	defer weatherResp.Body.Close()
+	var weatherInfo data.WeatherInfo
+	json.NewDecoder(weatherResp.Body).Decode(&weatherInfo)
+	return data.WsMessage{Msg: fmt.Sprintf("Weather[temp:%f][pressure:%f][day:%t][humid:%f][lux:%f]",
+		weatherInfo.Temp,
+		weatherInfo.Pressure,
+		weatherInfo.Day,
+		weatherInfo.Humidity,
+		weatherInfo.Lux)}
+}
+
 func replyMessage(ws *websocket.Conn, event data.WsEvent, msg string) error {
 	return websocket.JSON.Send(ws, &data.WsEvent{
 		Id:      event.Id,
@@ -108,6 +125,8 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 		log.Infof("Got event %+v", event)
 		if strings.ToLower(event.Text) == "ip" && event.User == userId {
 			replyMessage(ws, event, currentIpMessage("").Msg)
+		} else if strings.ToLower(event.Text) == "weather" && event.User == userId {
+			replyMessage(ws, event, getHomeWeather().Msg)
 		}
 	}
 }
