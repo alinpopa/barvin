@@ -107,6 +107,7 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 		ws, err = connectWs(rtm.Url, origin)
 	}
 	sendPrvMessage(userId, currentIpMessage(initMessage).Msg, token)
+	sendPrvMessage(userId, getHomeWeather().Msg, token)
 	for {
 		var msg string
 		var event data.WsEvent
