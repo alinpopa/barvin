@@ -53,9 +53,10 @@ func getHomeWeather() data.WsMessage {
 	defer weatherResp.Body.Close()
 	var weatherInfo data.WeatherInfo
 	json.NewDecoder(weatherResp.Body).Decode(&weatherInfo)
-	return data.WsMessage{Msg: fmt.Sprintf("Weather[temp:%f][pressure:%f][day:%t][humid:%f][lux:%f]",
+	return data.WsMessage{Msg: fmt.Sprintf("Weather\ntemperature:%f\npressure:%f\nlastPressure:%f\nis day:%t\nhumidity:%f\nlux:%f",
 		weatherInfo.Temp,
 		weatherInfo.Pressure,
+		weatherInfo.LastPressure,
 		weatherInfo.Day,
 		weatherInfo.Humidity,
 		weatherInfo.Lux)}
