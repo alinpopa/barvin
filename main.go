@@ -14,7 +14,7 @@ func main() {
 	flag.Parse()
 
 	var format = logging.MustStringFormatter(
-		`%{color}%{time:15:04:05.000} %{shortfunc} >>> %{level} %{id:03x} %{message}%{color:reset}`,
+		`%{color}%{time:2006-01-02T15:04:05.000} %{shortfunc} >>> %{level} %{id:03x} %{message}%{color:reset}`,
 	)
 	loggingBackend := logging.NewLogBackend(os.Stderr, "", 0)
 	backend2Formatter := logging.NewBackendFormatter(loggingBackend, format)
