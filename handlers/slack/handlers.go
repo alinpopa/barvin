@@ -6,6 +6,7 @@ import (
 	"github.com/alinpopa/barvin/data"
 	"github.com/op/go-logging"
 	"golang.org/x/net/websocket"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
@@ -62,6 +63,21 @@ func getHomeWeather() data.WsMessage {
 		weatherInfo.Lux)}
 }
 
+func getMac(mac string) data.WsMessage {
+	macResp, err1 := http.Get(fmt.Sprintf("http://api.macvendors.com/%s", url.QueryEscape(mac)))
+	if err1 != nil {
+		log.Errorf("Error while fetching the mac: %s", err1)
+		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err1)}
+	}
+	defer macResp.Body.Close()
+	textBody, err2 := ioutil.ReadAll(macResp.Body)
+	if err2 != nil {
+		log.Errorf("Error while fetching the mac: %s", err2)
+		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err2)}
+	}
+	return data.WsMessage{Msg: fmt.Sprintf("Mac vendor: %s", textBody)}
+}
+
 func replyMessage(ws *websocket.Conn, event data.WsEvent, msg string) error {
 	return websocket.JSON.Send(ws, &data.WsEvent{
 		Id:      event.Id,
@@ -94,6 +110,10 @@ func restart(msg string, err error, c chan<- string) {
 	go func() {
 		c <- m
 	}()
+}
+
+func parseEventText(eventText string) []string {
+	return strings.Split(eventText, " ")
 }
 
 func SlackHandler(initMessage string, restartChannel chan<- string, userId string, token string) {
@@ -129,6 +149,14 @@ func SlackHandler(initMessage string, restartChannel chan<- string, userId strin
 			replyMessage(ws, event, currentIpMessage("").Msg)
 		} else if strings.ToLower(event.Text) == "weather" && event.User == userId {
 			replyMessage(ws, event, getHomeWeather().Msg)
+		} else if event.User == userId {
+			eventText := parseEventText(event.Text)
+			if len(eventText) == 2 {
+				msg := strings.ToLower(eventText[0])
+				if msg == "mac" {
+					replyMessage(ws, event, getMac(eventText[1]).Msg)
+				}
+			}
 		}
 	}
 }
