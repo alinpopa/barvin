@@ -2,10 +2,12 @@ package main
 
 import (
 	"flag"
+	//"fmt"
 	"github.com/alinpopa/barvin/handlers/slack"
 	"github.com/op/go-logging"
 	"os"
 	"sync"
+	"time"
 )
 
 func main() {
@@ -32,7 +34,8 @@ func main() {
 		}()
 		for {
 			msg := <-restartChannel
-			go slack.SlackHandler(msg, restartChannel, *userID, *token)
+			_ = slack.SlackHandler(msg, restartChannel, *userID, *token)
+			time.Sleep(35 * time.Second)
 		}
 	}()
 	wg.Wait()
