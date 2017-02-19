@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-func GetHomeWeather() data.WsMessage {
+func GetHomeInWeather() data.WsMessage {
 	weatherResp, err := http.Get("https://agent.electricimp.com/ABsCu4F5e-PU/json")
 	if err != nil {
 		log.Errorf("Error while fetching the weather: %s", err)
@@ -19,13 +19,13 @@ func GetHomeWeather() data.WsMessage {
 	json.NewDecoder(weatherResp.Body).Decode(&weatherInfo)
 	msgFormat := "" +
 		"```\n" +
-		"Weather\n" +
-		"temperature: %f\n" +
-		"pressure: %f\n" +
-		"last pressure: %f\n" +
+		"In Weather\n" +
+		"temperature: %.2f\n" +
+		"pressure: %.2f\n" +
+		"last pressure: %.2f\n" +
 		"is day: %t\n" +
-		"humidity: %f\n" +
-		"lux: %f\n" +
+		"humidity: %.2f\n" +
+		"lux: %.3f\n" +
 		"date: %s\n" +
 		"```"
 	return data.WsMessage{Msg: fmt.Sprintf(msgFormat,
@@ -35,5 +35,31 @@ func GetHomeWeather() data.WsMessage {
 		weatherInfo.Day,
 		weatherInfo.Humidity,
 		weatherInfo.Lux,
+		weatherInfo.Date)}
+}
+
+func GetHomeOutWeather() data.WsMessage {
+	weatherResp, err := http.Get("https://agent.electricimp.com/nBWDNt16ALCQ/json")
+	if err != nil {
+		log.Errorf("Error while fetching the weather: %s", err)
+		return data.WsMessage{Msg: fmt.Sprintf("Error: %s", err)}
+	}
+	defer weatherResp.Body.Close()
+	var weatherInfo bdata.WeatherInfo
+	json.NewDecoder(weatherResp.Body).Decode(&weatherInfo)
+	msgFormat := "" +
+		"```\n" +
+		"Out Weather\n" +
+		"temperature: %.2f\n" +
+		"pressure: %.2f\n" +
+		"last pressure: %.2f\n" +
+		"humidity: %.2f\n" +
+		"date: %s\n" +
+		"```"
+	return data.WsMessage{Msg: fmt.Sprintf(msgFormat,
+		weatherInfo.Temp,
+		weatherInfo.Pressure,
+		weatherInfo.LastPressure,
+		weatherInfo.Humidity,
 		weatherInfo.Date)}
 }

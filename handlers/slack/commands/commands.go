@@ -30,6 +30,11 @@ type WeatherCommand struct {
 	Event *data.WsEvent
 }
 
+type OutWeatherCommand struct {
+	Ctx   *data.Context
+	Event *data.WsEvent
+}
+
 type GetMacCommand struct {
 	Ctx   *data.Context
 	Event *data.WsEvent
@@ -57,7 +62,18 @@ func (cmd *IpCommand) Run() error {
 }
 
 func (cmd *WeatherCommand) Run() error {
-	msg := external.GetHomeWeather().Msg
+	msg := external.GetHomeInWeather().Msg
+	return cmd.Ctx.Ws.WriteJSON(&data.WsEvent{
+		Id:      cmd.Event.Id,
+		Type:    "message",
+		Channel: cmd.Event.Channel,
+		Text:    msg,
+		User:    cmd.Event.User,
+	})
+}
+
+func (cmd *OutWeatherCommand) Run() error {
+	msg := external.GetHomeOutWeather().Msg
 	return cmd.Ctx.Ws.WriteJSON(&data.WsEvent{
 		Id:      cmd.Event.Id,
 		Type:    "message",
@@ -79,7 +95,9 @@ func (cmd *GetMacCommand) Run() error {
 }
 
 func EventToCommand(event *data.WsEvent, ctx *data.Context) Command {
-	if strings.ToLower(event.Type) == "pong" {
+	typeCommand := strings.ToLower(event.Type)
+	switch typeCommand {
+	case "pong":
 		return &PongCommand{
 			Ctx: ctx,
 		}
@@ -87,14 +105,20 @@ func EventToCommand(event *data.WsEvent, ctx *data.Context) Command {
 	if event.User != ctx.User {
 		return &NoopCommand{}
 	}
-	if strings.ToLower(event.Text) == "ip" {
+	textCommand := strings.ToLower(event.Text)
+	switch textCommand {
+	case "ip":
 		return &IpCommand{
 			Ctx:   ctx,
 			Event: event,
 		}
-	}
-	if strings.ToLower(event.Text) == "weather" {
+	case "weather":
 		return &WeatherCommand{
+			Ctx:   ctx,
+			Event: event,
+		}
+	case "outweather":
+		return &OutWeatherCommand{
 			Ctx:   ctx,
 			Event: event,
 		}
@@ -105,7 +129,8 @@ func EventToCommand(event *data.WsEvent, ctx *data.Context) Command {
 	}
 	msg := maybeComplexCmd[0]
 	arg := maybeComplexCmd[1]
-	if msg == "mac" {
+	switch msg {
+	case "mac":
 		return &GetMacCommand{
 			Ctx:   ctx,
 			Event: event,

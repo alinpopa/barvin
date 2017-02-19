@@ -103,7 +103,8 @@ func SlackHandler(initMessage string, restartChan chan<- string, userId string, 
 		context := startContext(ws, stopHandlerChan, userId)
 		defer context.Stop()
 		sendPrvMessage(userId, external.CurrentIpMessage(initMessage).Msg, token)
-		sendPrvMessage(userId, external.GetHomeWeather().Msg, token)
+		sendPrvMessage(userId, external.GetHomeInWeather().Msg, token)
+		sendPrvMessage(userId, external.GetHomeOutWeather().Msg, token)
 		eventsChan := make(chan data.WsEvent)
 		go eventsProducer(ws, eventsChan, stopHandlerChan)
 		for {
