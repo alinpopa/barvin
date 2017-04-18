@@ -65,8 +65,10 @@ func eventsProducer(ws *websocket.Conn, eventsChan chan<- data.WsEvent, stopHand
 	unmarshallErr := json.Unmarshal([]byte(msg), &event)
 	if unmarshallErr != nil {
 		log.Errorf("Error while unmarshaling message: %s", msg)
-		stopHandlerChan <- true
-		return
+		event = data.WsEvent{
+			Id:   0,
+			Type: "DUMMY",
+		}
 	}
 	log.Debugf("Raw message: %s", msg)
 	log.Infof("Got event %+v", event)
