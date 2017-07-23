@@ -1,4 +1,0 @@
-package: github.com/alinpopa/barvin
-import:
-- package: github.com/gorilla/websocket
-- package: github.com/op/go-logging

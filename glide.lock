@@ -1,8 +1,0 @@
-hash: 25f323d0fee9aa5a2f7f77022bd3789e9652b7f5126ae479433e62355c501fe9
-updated: 2017-07-22T15:30:33.613779698+01:00
-imports:
-- name: github.com/gorilla/websocket
-  version: a69d9f6de432e2c6b296a947d8a5ee88f68522cf
-- name: github.com/op/go-logging
-  version: 970db520ece77730c7e4724c61121037378659d9
-testImports: []

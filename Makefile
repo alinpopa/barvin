@@ -1,15 +1,15 @@
 .PHONY: all clean deps build
 
-GLIDE := $(shell command -v glide 2> /dev/null)
+GODEP := $(shell command -v dep 2> /dev/null)
 
-ifndef GLIDE
-	go get -u github.com/Masterminds/glide
+ifndef GODEP
+	go get -u github.com/golang/dep/cmd/dep
 endif
 
 all: clean deps build
 
 deps:
-	glide install
+	dep ensure -v
 
 build:
 	go build
